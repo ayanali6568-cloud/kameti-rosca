@@ -1,0 +1,15 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif; background: #0b0f14; color: #e5e7eb; }
+a { color: inherit; }
+.container { max-width: 1000px; margin: 0 auto; padding: 24px; }
+.card { background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+.button { display:inline-block; padding: 10px 16px; border-radius: 12px; border: 1px solid #374151; background: #111827; color: #e5e7eb; cursor: pointer; }
+.button:hover { background:#0f172a; }
+.input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #374151; background: #0b1220; color: #e5e7eb; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { border-bottom: 1px solid #1f2937; padding: 8px; text-align: left; }
+.badge { padding: 2px 8px; border-radius: 999px; border: 1px solid #374151; font-size: 12px; }
+.flex { display:flex; gap:12px; align-items:center; }
+.grid { display:grid; gap:16px; grid-template-columns: repeat(12, 1fr); }
+.col-6 { grid-column: span 6; }
+.col-12 { grid-column: span 12; }
