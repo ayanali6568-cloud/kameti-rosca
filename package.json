@@ -18,7 +18,7 @@
     "bcryptjs": "2.4.3",
     "@prisma/client": "5.16.1",
     "prisma": "5.16.1",
-    "stripe": "^16.0.0",
+    "stripe": "14.22.0",
     "zod": "3.23.8",
     "date-fns": "3.6.0"
   },
