@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -27,40 +27,42 @@ enum Role {
 }
 
 model Committee {
-  id            String      @id @default(cuid())
-  name          String
+  id           String       @id @default(cuid())
+  name         String
   monthlyAmount Int
-  currency      String      @default("AED")
-  memberCount   Int
-  startAt       DateTime
-  drawMethod    String      @default("fixed") // fixed|random|need
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  currency     String       @default("AED")
+  memberCount  Int
+  startAt      DateTime
+  drawMethod   String       @default("fixed") // fixed|random|need
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  memberships   Membership[]
-  cycles        Cycle[]
+  memberships  Membership[]
+  cycles       Cycle[]
+  payments     Payment[]
+  payouts      Payout[]
 }
 
 model Membership {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   userId      String
   committeeId String
-  orderIndex  Int       // 0..(memberCount-1), payout month
+  orderIndex  Int // 0..(memberCount-1), payout month
 
-  user        User      @relation(fields: [userId], references: [id])
-  committee   Committee @relation(fields: [committeeId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  committee Committee @relation(fields: [committeeId], references: [id])
 }
 
 model Cycle {
-  id           String     @id @default(cuid())
-  committeeId  String
-  number       Int        // 1,2,3,...
-  startedAt    DateTime
-  completedAt  DateTime?
+  id          String   @id @default(cuid())
+  committeeId String
+  number      Int      // 1,2,3,...
+  startedAt   DateTime
+  completedAt DateTime?
 
-  committee    Committee  @relation(fields: [committeeId], references: [id])
-  payments     Payment[]
-  payouts      Payout[]
+  committee Committee @relation(fields: [committeeId], references: [id])
+  payments   Payment[]
+  payouts    Payout[]
 }
 
 model Payment {
@@ -68,17 +70,16 @@ model Payment {
   userId      String
   committeeId String
   cycleId     String
-  monthIndex  Int      // 0..memberCount-1
+  monthIndex  Int
   amount      Int
   currency    String   @default("AED")
   status      String   @default("succeeded")
   stripeId    String?
-
   createdAt   DateTime @default(now())
 
-  user        User      @relation(fields: [userId], references: [id])
-  committee   Committee @relation(fields: [committeeId], references: [id])
-  cycle       Cycle     @relation(fields: [cycleId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  committee Committee @relation(fields: [committeeId], references: [id])
+  cycle     Cycle     @relation(fields: [cycleId], references: [id])
 
   @@unique([userId, committeeId, cycleId, monthIndex])
 }
@@ -88,14 +89,14 @@ model Payout {
   userId      String
   committeeId String
   cycleId     String
-  monthIndex  Int      // who gets lump sum at monthIndex
+  monthIndex  Int
   amount      Int
   currency    String   @default("AED")
   paidAt      DateTime?
 
-  user        User      @relation(fields: [userId], references: [id])
-  committee   Committee @relation(fields: [committeeId], references: [id])
-  cycle       Cycle     @relation(fields: [cycleId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  committee Committee @relation(fields: [committeeId], references: [id])
+  cycle     Cycle     @relation(fields: [cycleId], references: [id])
 
   @@unique([committeeId, cycleId, monthIndex])
 }
