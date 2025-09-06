@@ -20,11 +20,13 @@
     "prisma": "5.16.1",
     "stripe": "14.22.0",
     "zod": "3.23.8",
-    "date-fns": "3.6.0"
+    "date-fns": "3.6.0",
+    "micro": "^10.0.0"
   },
   "devDependencies": {
     "typescript": "^5.4.0",
     "@types/react": "^18.2.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "@types/micro": "^7.3.6"
   }
 }
