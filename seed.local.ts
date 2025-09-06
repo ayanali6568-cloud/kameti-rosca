@@ -1,13 +1,17 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, Role } from "@prisma/client"
 import bcrypt from "bcryptjs"
 
 const prisma = new PrismaClient()
 
 async function main() {
-  // Hash password
-  const password = await bcrypt.hash("Pass@123", 10)
+  // Admin password from .env
+  const adminPasswordPlain = process.env.ADMIN_PASSWORD || "Pass@123"
+  const adminPassword = await bcrypt.hash(adminPasswordPlain, 10)
 
-  // 33 Members create/update
+  // Default password for members
+  const memberPassword = await bcrypt.hash("Pass@123", 10)
+
+  // 33 test members
   const users = await Promise.all(
     Array.from({ length: 33 }).map((_, i) =>
       prisma.user.upsert({
@@ -16,24 +20,26 @@ async function main() {
         create: {
           name: `Member ${i + 1}`,
           email: `member${i + 1}@mail.com`,
-          password,
+          password: memberPassword,
+          role: Role.MEMBER,
         },
       })
     )
   )
 
-  // Admin create/update
+  // Admin user
   const admin = await prisma.user.upsert({
     where: { email: "admin@mail.com" },
     update: {},
     create: {
       name: "Admin",
       email: "admin@mail.com",
-      password,
+      password: adminPassword,
+      role: Role.ADMIN,
     },
   })
 
-  // Committee create
+  // Committee with members
   const committee = await prisma.committee.create({
     data: {
       name: "Kameti 33 x 1000 AED",
@@ -41,8 +47,14 @@ async function main() {
       currency: "AED",
       memberCount: 33,
       startAt: new Date(),
+      drawMethod: "fixed",
       cycles: {
-        create: [{ number: 1, startedAt: new Date() }],
+        create: [
+          {
+            number: 1,
+            startedAt: new Date(),
+          },
+        ],
       },
       memberships: {
         create: users.map((u, idx) => ({
@@ -51,10 +63,15 @@ async function main() {
         })),
       },
     },
+    include: {
+      memberships: true,
+      cycles: true,
+    },
   })
 
-  console.log("✅ Seeded:")
-  console.log("Admin:", admin.email)
+  console.log("✅ Seed completed")
+  console.log("Admin email:", admin.email)
+  console.log("Admin password (from .env):", adminPasswordPlain)
   console.log("Committee:", committee.name)
 }
 
