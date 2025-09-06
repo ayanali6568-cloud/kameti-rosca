@@ -3,10 +3,13 @@ import { PrismaClient } from "@prisma/client"
 import Stripe from "stripe"
 
 const prisma = new PrismaClient()
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: "2022-11-15" })
+
+// ✅ apiVersion hata diya gaya
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string)
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end()
+
   const { id } = req.query
   const { userId, cycleId, monthIndex } = req.body
 
@@ -17,19 +20,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
-    success_url: `${process.env.BASE_URL}/dashboard?success=1`,
-    cancel_url: `${process.env.BASE_URL}/dashboard?canceled=1`,
+    success_url: `${process.env.NEXTAUTH_URL}/dashboard?success=1`,
+    cancel_url: `${process.env.NEXTAUTH_URL}/dashboard?canceled=1`,
     currency: "aed",
-    line_items: [{
-      price_data: { currency: "aed", product_data: { name: `${committee.name} — Month ${Number(monthIndex)+1}` }, unit_amount: amount * 100 },
-      quantity: 1
-    }],
+    line_items: [
+      {
+        price_data: {
+          currency: "aed",
+          product_data: {
+            name: `${committee.name} – Month ${Number(monthIndex) + 1}`,
+          },
+          unit_amount: amount * 100, // Stripe expects amount in cents
+        },
+        quantity: 1,
+      },
+    ],
     metadata: {
       committeeId: committee.id,
       userId,
       cycleId,
-      monthIndex: String(monthIndex)
-    }
+      monthIndex: String(monthIndex),
+    },
   })
 
   res.json({ url: session.url })
