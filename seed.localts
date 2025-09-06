@@ -1,0 +1,68 @@
+import { PrismaClient } from "@prisma/client"
+import bcrypt from "bcryptjs"
+
+const prisma = new PrismaClient()
+
+async function main() {
+  // Hash password
+  const password = await bcrypt.hash("Pass@123", 10)
+
+  // 33 Members create/update
+  const users = await Promise.all(
+    Array.from({ length: 33 }).map((_, i) =>
+      prisma.user.upsert({
+        where: { email: `member${i + 1}@mail.com` },
+        update: {},
+        create: {
+          name: `Member ${i + 1}`,
+          email: `member${i + 1}@mail.com`,
+          password,
+        },
+      })
+    )
+  )
+
+  // Admin create/update
+  const admin = await prisma.user.upsert({
+    where: { email: "admin@mail.com" },
+    update: {},
+    create: {
+      name: "Admin",
+      email: "admin@mail.com",
+      password,
+    },
+  })
+
+  // Committee create
+  const committee = await prisma.committee.create({
+    data: {
+      name: "Kameti 33 x 1000 AED",
+      monthlyAmount: 1000,
+      currency: "AED",
+      memberCount: 33,
+      startAt: new Date(),
+      cycles: {
+        create: [{ number: 1, startedAt: new Date() }],
+      },
+      memberships: {
+        create: users.map((u, idx) => ({
+          userId: u.id,
+          orderIndex: idx,
+        })),
+      },
+    },
+  })
+
+  console.log("✅ Seeded:")
+  console.log("Admin:", admin.email)
+  console.log("Committee:", committee.name)
+}
+
+main()
+  .catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })
